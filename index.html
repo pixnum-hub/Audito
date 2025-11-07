@@ -1,521 +1,461 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>🎵 Audito - Neomorphic Music Player (Custom Visualizer Palettes)</title>
-<style>
-/* ---------- Base / Neumorphic UI ---------- */
-body {
-  background: #111;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  color: #eee;
-}
-.app-frame {
-  width: 420px;
-  max-height: 95vh;
-  background: #1a1a1a;
-  border-radius: 22px;
-  box-shadow: 10px 10px 20px #0d0d0d, -10px -10px 20px #2a2a2a;
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden;
-}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🎵 Audito - Mobile-first Neomorphic Music Player</title>
+  <style>
+    /* ---------- Mobile-first Responsive Neomorphic UI ---------- */
 
-/* header */
-h2 { margin: 0; color: #fff; }
+    :root {
+      --bg: #111;
+      --panel: #1a1a1a;
+      --panel-inset: #1b1b1b;
+      --accent: #00e0ff;
+      --text: #eee;
+    }
 
-/* controls */
-.controls { width: 100%; display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:center; margin-top:8px; }
-.controls button {
-  background: #1e1e1e; border: none; padding: 8px 10px; border-radius: 12px;
-  color: #fff; cursor: pointer; box-shadow: 4px 4px 8px #0c0c0c, -4px -4px 8px #2c2c2c; transition: .18s;
-}
-.controls button:hover { transform: translateY(-2px); box-shadow: inset 4px 4px 8px #0c0c0c, inset -4px -4px 8px #2c2c2c; }
-.controls select {
-  background:#1b1b1b; color:#fff; border:none; padding:8px; border-radius:10px; box-shadow: inset 3px 3px 6px #0d0d0d, inset -3px -3px 6px #2b2b2b;
-}
+    * { box-sizing: border-box; }
 
-/* media container & canvas */
-#mediaContainer { width:100%; margin-top:10px; }
-canvas { width:100%; height:100px; background:#111; border-radius:12px; box-shadow: inset 6px 6px 12px #0c0c0c, inset -6px -6px 12px #2a2a2a; margin-top:8px; display:block; }
+    body {
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
 
-/* volume */
-.volume-control { display:flex; width:100%; align-items:center; justify-content:center; margin-top:10px; background:#1b1b1b; border-radius:16px; padding:8px; box-shadow: inset 6px 6px 12px #0c0c0c, inset -6px -6px 12px #2b2b2b; }
-.volume-control input[type=range]{ width:80%; -webkit-appearance:none; height:6px; background:transparent; }
-.volume-control input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#00e0ff; box-shadow:0 0 10px #00e0ff; cursor:pointer; }
+    .app-frame {
+      width: 95%;
+      max-width: 460px;
+      background: var(--panel);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 12px 12px 28px rgba(0,0,0,0.7), -8px -8px 20px rgba(255,255,255,0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px auto;
+    }
 
-/* eq area */
-.eq { display:flex; align-items:flex-end; justify-content:space-between; height:160px; padding:10px; background:#1b1b1b; border-radius:18px; box-shadow: inset 8px 8px 12px #0d0d0d, inset -8px -8px 12px #2c2c2c; gap:12px; overflow-x:auto; margin-top:10px;}
-.eq input[type=range]{ writing-mode: bt-lr; -webkit-appearance: slider-vertical; width:24px; height:120px; border-radius:12px; background:#222; outline:none; box-shadow:4px 4px 8px #0c0c0c, -4px -4px 8px #2c2c2c; }
-.eq input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; transition:transform .18s, box-shadow .18s; }
-.eq input[type=range]:hover::-webkit-slider-thumb{ transform:scale(1.25); }
+    /* header */
+    .header-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .header-row h2{ margin:0; font-size:18px; color:var(--accent); text-shadow:0 0 8px rgba(0,224,255,0.08); }
 
-/* per-band colors (up to 11 thumbs) */
-.eq input:nth-child(1)::-webkit-slider-thumb{ background:#ff3b3b; box-shadow:0 0 10px #ff3b3b; }
-.eq input:nth-child(2)::-webkit-slider-thumb{ background:#ff7b00; box-shadow:0 0 10px #ff7b00; }
-.eq input:nth-child(3)::-webkit-slider-thumb{ background:#ffb300; box-shadow:0 0 10px #ffb300; }
-.eq input:nth-child(4)::-webkit-slider-thumb{ background:#00ff80; box-shadow:0 0 10px #00ff80; }
-.eq input:nth-child(5)::-webkit-slider-thumb{ background:#00d5ff; box-shadow:0 0 10px #00d5ff; }
-.eq input:nth-child(6)::-webkit-slider-thumb{ background:#007bff; box-shadow:0 0 10px #007bff; }
-.eq input:nth-child(7)::-webkit-slider-thumb{ background:#c800ff; box-shadow:0 0 10px #c800ff; }
-.eq input:nth-child(8)::-webkit-slider-thumb{ background:#ff00ff; box-shadow:0 0 10px #ff00ff; }
-.eq input:nth-child(9)::-webkit-slider-thumb{ background:#ff5ce2; box-shadow:0 0 10px #ff5ce2; }
-.eq input:nth-child(10)::-webkit-slider-thumb{ background:#00ffff; box-shadow:0 0 10px #00ffff; }
-.eq input:nth-child(11)::-webkit-slider-thumb{ background:#ffff00; box-shadow:0 0 10px #ffff00; }
+    /* file input */
+    .file-row { display:flex; gap:8px; align-items:center; }
+    input[type=file] { color:var(--text); }
 
-/* playlist & debug */
-.playlist { width:100%; flex:1; margin-top:10px; background:#111; border-radius:14px; padding:8px; box-shadow: inset 6px 6px 12px #0c0c0c, inset -6px -6px 12px #2a2a2a; overflow-y:auto; color:#fff; }
-.playlist div{ padding:6px; border-radius:8px; cursor:pointer; }
-.playlist div:hover{ background:#2a2a2a; }
-.debug-log{ width:100%; height:72px; margin-top:8px; background:#000; border-radius:10px; padding:8px; color:#00ffcc; box-shadow: inset 4px 4px 8px #0c0c0c, inset -4px -4px 8px #2c2c2c; overflow:auto; font-size:12px; }
+    /* media container & canvas */
+    #mediaContainer { width:100%; display:block; border-radius:10px; overflow:hidden; background:#000; }
+    canvas { width:100%; height:100px; border-radius:12px; background:#0b0b0b; box-shadow: inset 6px 6px 12px rgba(0,0,0,0.6); display:block; }
 
-/* palette editor (toggle panel) */
-.palette-editor {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
-  width: 420px;
-  max-width:92%;
-  background:#151515;
-  border-radius:14px;
-  padding:14px;
-  box-shadow: 16px 16px 40px rgba(0,0,0,0.7);
-  z-index:1000;
-}
-.palette-editor h3{ margin:6px 0 10px 0; color:#fff; font-size:16px; }
-.palette-row{ display:flex; gap:10px; align-items:center; margin-bottom:8px; }
-.palette-box{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.color-input{ width:48px; height:32px; border-radius:8px; border:none; padding:0; box-shadow:2px 2px 6px rgba(0,0,0,0.6); }
-.palette-actions{ display:flex; gap:8px; margin-top:8px; justify-content:flex-end; }
-.small-btn{ background:#1e1e1e; color:#fff; border:none; padding:8px 10px; border-radius:8px; box-shadow:4px 4px 8px #0c0c0c, -4px -4px 8px #2c2c2c; cursor:pointer; }
+    /* seek bar */
+    .seek-bar { width:100%; margin-top:6px; }
+    .seek-bar input[type=range]{
+      width:100%; -webkit-appearance:none; appearance:none;
+      height:8px; border-radius:8px;
+      background: linear-gradient(90deg,#222,#181818);
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.6);
+    }
+    .seek-bar input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+      background:var(--accent); box-shadow:0 0 12px rgba(0,224,255,0.6); cursor:pointer;
+    }
 
-/* overlay close */
-.overlay { position:fixed; inset:0; background: rgba(0,0,0,0.6); display:none; z-index:900; }
+    /* controls */
+    .controls { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; align-items:center; margin-top:6px; }
+    .controls button {
+      background: var(--panel-inset);
+      color: var(--text);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 12px;
+      box-shadow: 6px 6px 12px rgba(0,0,0,0.6), -6px -6px 12px rgba(255,255,255,0.02);
+      cursor:pointer; font-size:14px;
+    }
+    .controls button:active {
+      box-shadow: inset 6px 6px 12px rgba(0,0,0,0.6), inset -6px -6px 12px rgba(255,255,255,0.02);
+      transform:scale(.98);
+    }
+    .controls select {
+      background: var(--panel-inset); padding:8px; border-radius:10px;
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.6); border:none; color:var(--text);
+    }
 
-/* responsive */
-@media (max-width:520px){
-  .app-frame{ width:96%; padding:12px; }
-  .controls{ gap:4px; }
-}
-</style>
+    /* volume */
+    .volume-control { display:flex; align-items:center; gap:10px; background:var(--panel-inset); padding:8px; border-radius:12px; box-shadow: inset 6px 6px 12px rgba(0,0,0,0.6), inset -6px -6px 12px rgba(255,255,255,0.02); }
+    .volume-control input[type=range]{ width:80%; -webkit-appearance:none; height:6px; background:transparent; }
+    .volume-control input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--accent); box-shadow:0 0 12px rgba(0,224,255,0.6); cursor:pointer; }
+
+    /* EQ (scrollable on small screens) */
+    .eq {
+      display:flex;
+      align-items:flex-end;
+      justify-content:flex-start;
+      gap:12px;
+      height:150px;
+      padding:8px;
+      border-radius:14px;
+      background: var(--panel-inset);
+      box-shadow: inset 8px 8px 14px rgba(0,0,0,0.6), inset -8px -8px 14px rgba(255,255,255,0.02);
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    .eq::-webkit-scrollbar{ height:8px }
+    .eq::-webkit-scrollbar-thumb{ background: #333; border-radius:4px; }
+
+    .eq input[type=range]{ writing-mode:bt-lr; -webkit-appearance:slider-vertical; width:28px; height:120px; border-radius:12px; background:#222; outline:none; box-shadow: 4px 4px 8px rgba(0,0,0,0.6), -4px -4px 8px rgba(255,255,255,0.02); }
+    .eq input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:16px; border-radius:50%; transition:transform .14s; }
+    .eq input[type=range]:active{ transform:scale(1.04); }
+    .eq input[type=range]:hover::-webkit-slider-thumb{ transform:scale(1.25); }
+
+    /* per-band neon thumbs (11 bands) */
+    .eq input:nth-child(1)::-webkit-slider-thumb{ background:#ff3b3b; box-shadow:0 0 10px #ff3b3b; }
+    .eq input:nth-child(2)::-webkit-slider-thumb{ background:#ff7b00; box-shadow:0 0 10px #ff7b00; }
+    .eq input:nth-child(3)::-webkit-slider-thumb{ background:#ffb300; box-shadow:0 0 10px #ffb300; }
+    .eq input:nth-child(4)::-webkit-slider-thumb{ background:#00ff80; box-shadow:0 0 10px #00ff80; }
+    .eq input:nth-child(5)::-webkit-slider-thumb{ background:#00d5ff; box-shadow:0 0 10px #00d5ff; }
+    .eq input:nth-child(6)::-webkit-slider-thumb{ background:#007bff; box-shadow:0 0 10px #007bff; }
+    .eq input:nth-child(7)::-webkit-slider-thumb{ background:#c800ff; box-shadow:0 0 10px #c800ff; }
+    .eq input:nth-child(8)::-webkit-slider-thumb{ background:#ff00ff; box-shadow:0 0 10px #ff00ff; }
+    .eq input:nth-child(9)::-webkit-slider-thumb{ background:#ff5ce2; box-shadow:0 0 10px #ff5ce2; }
+    .eq input:nth-child(10)::-webkit-slider-thumb{ background:#00ffff; box-shadow:0 0 10px #00ffff; }
+    .eq input:nth-child(11)::-webkit-slider-thumb{ background:#ffff00; box-shadow:0 0 10px #ffff00; }
+
+    /* playlist & debug */
+    .playlist { width:100%; max-height:120px; overflow-y:auto; padding:8px; border-radius:12px; background:#0f0f0f; box-shadow: inset 6px 6px 12px rgba(0,0,0,0.6); color:#fff; }
+    .playlist div{ padding:8px; border-radius:8px; cursor:pointer; }
+    .playlist div:hover{ background:#222; }
+
+    .debug-log { width:100%; height:72px; border-radius:10px; padding:8px; background:#000; color:#00ffcc; box-shadow: inset 4px 4px 8px rgba(0,0,0,0.6); overflow:auto; font-size:12px; }
+
+    /* palette editor overlay */
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; z-index:900; }
+    .palette-editor { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:420px; max-width:96%; background:#151515; border-radius:12px; padding:12px; box-shadow: 16px 16px 40px rgba(0,0,0,0.7); z-index:1000; display:none; }
+
+    /* responsive tweaks */
+    @media (max-width: 720px){
+      .app-frame { padding:12px; gap:8px; max-width:420px; }
+      .eq { height:140px; }
+      canvas { height:92px; }
+      .controls button{ padding:8px 10px; min-width:52px; font-size:13px; }
+    }
+
+    @media (max-width:420px){
+      .app-frame { max-width: 98%; padding:10px; }
+      .eq { height:120px; gap:8px; }
+      .eq input[type=range]{ width:22px; height:96px; }
+      canvas { height:80px; }
+      .controls button{ padding:6px 8px; min-width:44px; font-size:12px; }
+      .playlist { max-height:100px; }
+    }
+  </style>
 </head>
 <body>
-<div class="app-frame" id="app">
-  <h2>🎵 Audito</h2>
+  <div class="app-frame" id="app">
+    <!-- header -->
+    <div class="header-row">
+      <h2>🎵 Audito</h2>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="file" id="fileInput" multiple accept="audio/*,video/*" />
+      </div>
+    </div>
 
-  <input type="file" id="fileInput" multiple accept="audio/*,video/*" style="margin-top:8px; background:transparent; color:#ddd;">
+    <!-- media area -->
+    <div id="mediaContainer"></div>
 
-  <div id="mediaContainer" style="width:100%; margin-top:8px;"></div>
+    <!-- seek bar container (seek bar element injected by script) -->
+    <div class="seek-bar" id="seekBarContainer"></div>
 
-  <canvas id="spectrum"></canvas>
+    <!-- visualizer -->
+    <canvas id="spectrum"></canvas>
 
-  <div class="controls">
-    <button id="prev">⏮</button>
-    <button id="play">▶️</button>
-    <button id="pause">⏸</button>
-    <button id="stop">⏹</button>
-    <button id="next">⏭</button>
+    <!-- controls -->
+    <div class="controls">
+      <button id="prev">⏮</button>
+      <button id="play">▶️</button>
+      <button id="pause">⏸</button>
+      <button id="stop">⏹</button>
+      <button id="next">⏭</button>
 
-    <button id="loop">Loop: Off</button>
+      <button id="loop">Loop: Off</button>
 
-    <select id="spectrumPreset" title="Visualizer preset">
-      <!-- built-ins -->
-      <option value="rainbow">Rainbow</option>
-      <option value="rainbowSoft">Rainbow Soft</option>
-      <option value="rainbowPastel">Rainbow Pastel</option>
-      <option value="rainbowDark">Rainbow Dark</option>
+      <!-- Visualizer presets: current 4 only (Rainbow, Fire, Ocean, Neon) -->
+      <select id="spectrumPreset" title="Visualizer preset">
+        <option value="rainbow">Rainbow</option>
+        <option value="fire">Fire</option>
+        <option value="ocean">Ocean</option>
+        <option value="neon">Neon</option>
+      </select>
 
-      <option value="blueCyan">Blue-Cyan</option>
-      <option value="purplePink">Purple-Pink</option>
-      <option value="redOrange">Red-Orange</option>
+      <button id="editPalettes" title="Edit Custom Palettes" style="display:none;">Edit Palettes</button>
+    </div>
 
-      <option value="fire">Fire</option>
-      <option value="ocean">Ocean</option>
-      <option value="neon">Neon</option>
+    <!-- volume -->
+    <div class="volume-control">
+      <label style="color:#fff; margin-right:6px;">🔊</label>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.3">
+    </div>
 
-      <!-- custom placeholders -->
-      <option value="custom1">Custom 1</option>
-      <option value="custom2">Custom 2</option>
-      <option value="custom3">Custom 3</option>
-      <option value="custom4">Custom 4</option>
-    </select>
+    <!-- 11-band EQ (scrollable on small screens) -->
+    <div class="eq" id="eq">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="60">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="170">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="350">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="1000">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="3500">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="6000">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="10000">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="12000">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="15000">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="18000">
+      <input type="range" min="-36" max="36" value="0" step="1" data-band="20000">
+    </div>
 
-    <button id="editPalettes" title="Edit Custom Palettes">Edit Palettes</button>
+    <!-- playlist and debug -->
+    <div class="playlist" id="playlist"></div>
+    <div class="debug-log" id="debugLog"></div>
+
+    <div style="display:flex; justify-content:center; margin-top:6px;">
+      <small style="color:#bbb;">© Manik Roy 2025. All Rights Reserved.</small>
+    </div>
   </div>
 
-  <div class="volume-control">
-    <label style="color:#fff; margin-right:10px;">Volume</label>
-    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.3">
-  </div>
+  <!-- (palette editor omitted from UI since only 4 presets are used) -->
+  <div class="overlay" id="overlay" style="display:none;"></div>
+  <div class="palette-editor" id="paletteEditor" style="display:none;"></div>
 
-  <div class="eq" id="eq">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="60">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="170">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="350">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="1000">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="3500">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="6000">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="10000">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="12000">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="15000">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="18000">
-    <input type="range" min="-36" max="36" value="0" step="1" data-band="20000">
-  </div>
+  <script>
+    /* ------------------ Core Player & Audio Graph ------------------ */
+    let audioContext, analyser, sourceNode, masterGain, filters = [];
+    let files = [], currentFileIndex = 0, currentMedia = null, loopMode = 0, audioContextStarted = false;
 
-  <div class="playlist" id="playlist"></div>
-  <div class="debug-log" id="debugLog"></div>
-  <p style="color:#bbb; font-size:12px; margin-top:8px;">© Manik Roy 2025. All Rights Reserved.</p>
-</div>
+    const fileInput = document.getElementById('fileInput');
+    const playlist = document.getElementById('playlist');
+    const debugLog = document.getElementById('debugLog');
+    const loopBtn = document.getElementById('loop');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const spectrumPreset = document.getElementById('spectrumPreset');
 
-<!-- palette editor overlay -->
-<div class="overlay" id="overlay"></div>
-<div class="palette-editor" id="paletteEditor" style="display:none;">
-  <h3>Edit Custom Palettes</h3>
-  <div id="paletteList"></div>
-  <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
-    <button class="small-btn" id="resetPalettes">Reset Defaults</button>
-    <button class="small-btn" id="closePalettes">Close</button>
-  </div>
-</div>
+    function log(msg){ debugLog.innerHTML += msg + '<br>'; debugLog.scrollTop = debugLog.scrollHeight; }
 
-<script>
-/* ------------------ Core Player & Audio Graph ------------------ */
-let audioContext, analyser, sourceNode, masterGain, filters = [];
-let files = [], currentFileIndex = 0, currentMedia = null, loopMode = 0, audioContextStarted = false;
-
-const fileInput = document.getElementById('fileInput');
-const playlist = document.getElementById('playlist');
-const debugLog = document.getElementById('debugLog');
-const loopBtn = document.getElementById('loop');
-const volumeSlider = document.getElementById('volumeSlider');
-const spectrumPreset = document.getElementById('spectrumPreset');
-const editPalettesBtn = document.getElementById('editPalettes');
-
-function log(msg){ debugLog.innerHTML += msg + '<br>'; debugLog.scrollTop = debugLog.scrollHeight; }
-
-function initAudioContext(){
-  if(!audioContext){
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = 512;
-    masterGain = audioContext.createGain();
-    masterGain.gain.value = volumeSlider.value;
-    masterGain.connect(analyser);
-    analyser.connect(audioContext.destination);
-    setupEQ();
-    log('AudioContext initialized');
-  }
-}
-
-document.body.addEventListener('click', ()=>{ if(!audioContextStarted){ audioContextStarted = true; initAudioContext(); if(audioContext.state === 'suspended') audioContext.resume(); } }, { once:true });
-
-volumeSlider.oninput = ()=>{
-  if(currentMedia) currentMedia.volume = volumeSlider.value;
-  if(masterGain) masterGain.gain.value = volumeSlider.value;
-  localStorage.setItem('audito_volume', volumeSlider.value);
-  log('Volume set to ' + Math.round(volumeSlider.value*100) + '%');
-};
-
-/* Equalizer */
-function setupEQ(){
-  const eqSliders = document.querySelectorAll('.eq input');
-  filters = [];
-  eqSliders.forEach((slider, idx)=>{
-    const freq = parseFloat(slider.dataset.band);
-    const filter = audioContext.createBiquadFilter();
-    filter.type = 'peaking';
-    filter.frequency.value = freq;
-    filter.Q.value = (freq < 100) ? 1.2 : (freq < 1000 ? 1 : 0.5);
-    filter.gain.value = parseFloat(slider.value);
-    slider.oninput = e => { filter.gain.value = parseFloat(e.target.value); localStorage.setItem('audito_eq_'+freq, e.target.value); };
-    filters.push(filter);
-  });
-  for(let i=0;i<filters.length-1;i++) filters[i].connect(filters[i+1]);
-  // connect chain -> masterGain -> analyser -> destination
-  filters[filters.length-1].connect(masterGain);
-}
-
-/* Create media element and wire to audio graph */
-function createMediaElement(file){
-  if(currentMedia){ try{ currentMedia.pause(); currentMedia.remove(); } catch(e){} if(sourceNode) sourceNode.disconnect(); }
-  const url = URL.createObjectURL(file);
-  if(file.type.startsWith('video')){
-    currentMedia = document.createElement('video');
-    currentMedia.src = url; currentMedia.controls = true; currentMedia.style.width = '100%';
-    currentMedia.volume = volumeSlider.value;
-    document.getElementById('mediaContainer').innerHTML = ''; document.getElementById('mediaContainer').appendChild(currentMedia);
-    currentMedia.play().catch(()=>{});
-  } else {
-    currentMedia = document.createElement('audio');
-    currentMedia.src = url; currentMedia.controls = true; currentMedia.style.width = '100%';
-    currentMedia.volume = volumeSlider.value;
-    document.getElementById('mediaContainer').innerHTML = ''; document.getElementById('mediaContainer').appendChild(currentMedia);
-
-    if(!audioContextStarted){ initAudioContext(); audioContextStarted = true; }
-    sourceNode = audioContext.createMediaElementSource(currentMedia);
-    if(filters.length>0) sourceNode.connect(filters[0]); else sourceNode.connect(masterGain);
-    currentMedia.play().catch(()=>{});
-  }
-  currentMedia.onended = handleMediaEnd;
-  currentMedia.ontimeupdate = ()=>{ if(currentMedia.duration) seekBar.value = (currentMedia.currentTime/currentMedia.duration)*100; };
-  log('Loaded: ' + file.name);
-}
-
-/* playlist management */
-fileInput.onchange = e => {
-  files = Array.from(e.target.files);
-  buildPlaylist();
-  if(files.length>0) loadFile(0);
-};
-function buildPlaylist(){
-  playlist.innerHTML = '';
-  files.forEach((f,i)=>{
-    const d = document.createElement('div');
-    d.textContent = f.name;
-    d.onclick = ()=> loadFile(i);
-    playlist.appendChild(d);
-  });
-}
-
-/* control functions */
-function loadFile(i){ if(i<0||i>=files.length) return; currentFileIndex = i; createMediaElement(files[i]); highlightActive(); }
-function play(){ if(currentMedia) currentMedia.play().catch(()=>{}); log('Play'); }
-function pause(){ if(currentMedia) currentMedia.pause(); log('Pause'); }
-function stop(){ if(currentMedia){ currentMedia.pause(); currentMedia.currentTime = 0; } log('Stop'); }
-function next(){ if(files.length===0) return; loadFile((currentFileIndex+1) % files.length); play(); log('Next'); }
-function prev(){ if(files.length===0) return; loadFile((currentFileIndex-1+files.length) % files.length); play(); log('Prev'); }
-function highlightActive(){ [...playlist.children].forEach((el,i)=> el.classList.toggle('active', i===currentFileIndex)); playlist.children[currentFileIndex]?.scrollIntoView({behavior:'smooth', block:'center'}); }
-
-loopBtn.onclick = ()=>{ loopMode = (loopMode+1)%3; loopBtn.innerText = loopMode===0 ? 'Loop: Off' : loopMode===1 ? 'Loop: One' : 'Loop: All'; log('Loop set: ' + loopBtn.innerText); };
-function handleMediaEnd(){ if(loopMode===1) { currentMedia.currentTime = 0; currentMedia.play(); } else if(loopMode===2) next(); else stop(); }
-
-/* Seek bar (simple) */
-const seekBar = document.createElement('input');
-seekBar.type='range'; seekBar.min=0; seekBar.max=100; seekBar.step=0.1; seekBar.value=0;
-seekBar.style.width='100%'; seekBar.style.marginTop='8px';
-seekBar.oninput = ()=>{ if(currentMedia && currentMedia.duration) currentMedia.currentTime = (seekBar.value/100)*currentMedia.duration; };
-document.querySelector('.app-frame').insertBefore(seekBar, document.querySelector('.controls'));
-
-/* wire buttons */
-document.getElementById('play').onclick = play;
-document.getElementById('pause').onclick = pause;
-document.getElementById('stop').onclick = stop;
-document.getElementById('prev').onclick = prev;
-document.getElementById('next').onclick = next;
-
-/* ---------- Spectrum Visualizer with many presets + custom palettes ---------- */
-const canvas = document.getElementById('spectrum');
-const ctx = canvas.getContext('2d');
-function resizeCanvas(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
-window.addEventListener('resize', resizeCanvas); resizeCanvas();
-
-/* default custom palettes (3 colors each) */
-const defaultCustomPalettes = [
-  ['#ff3b3b','#ffb300','#ffd16b'],     // warm
-  ['#00d5ff','#0066ff','#00ffc3'],     // cyan-blue
-  ['#c800ff','#ff5ce2','#ffb3ff'],     // purple-pink
-  ['#00ff88','#00ffaa','#00ffd5']      // green-cool
-];
-
-/* load custom palettes from localStorage or fallback */
-function loadCustomPalettes(){
-  try{
-    const raw = localStorage.getItem('audito_custom_palettes_v1');
-    if(!raw) return defaultCustomPalettes.slice();
-    const parsed = JSON.parse(raw);
-    if(Array.isArray(parsed) && parsed.length===4) return parsed;
-  } catch(e){}
-  return defaultCustomPalettes.slice();
-}
-function saveCustomPalettes(pal){
-  localStorage.setItem('audito_custom_palettes_v1', JSON.stringify(pal));
-}
-let customPalettes = loadCustomPalettes();
-
-/* helper color utils (hex <-> rgb, mix) */
-function hexToRgb(hex){
-  hex = hex.replace('#','');
-  if(hex.length===3) hex = hex.split('').map(h=>h+h).join('');
-  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
-  return [r,g,b];
-}
-function rgbToCss(rgb){ return `rgb(${Math.round(rgb[0])}, ${Math.round(rgb[1])}, ${Math.round(rgb[2])})`; }
-function mixRgb(a,b,t){ return [ a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t, a[2] + (b[2]-a[2])*t ]; }
-
-/* map index to palette color by interpolation across palette stops */
-function colorFromPalette(i, palette){
-  const n = palette.length;
-  const t = i; // 0..1
-  const totalSegments = n-1;
-  const seg = Math.min(totalSegments-1, Math.floor(t*totalSegments));
-  const segT = (t*totalSegments) - seg;
-  const a = hexToRgb(palette[seg]);
-  const b = hexToRgb(palette[seg+1]);
-  return rgbToCss(mixRgb(a,b,segT));
-}
-
-/* built-in preset -> function returning color for bar i */
-function getColor(i, preset){
-  const percent = i / 256;
-  switch(preset){
-    case 'rainbow': return `hsl(${percent*360}, 100%, 50%)`;
-    case 'rainbowSoft': return `hsl(${percent*360}, 85%, 65%)`;
-    case 'rainbowPastel': return `hsl(${percent*360}, 60%, 75%)`;
-    case 'rainbowDark': return `hsl(${percent*360}, 90%, 30%)`;
-
-    case 'blueCyan': return `rgb(0, ${Math.min(255, 80 + percent*175)}, ${Math.min(255, 180 + percent*75)})`;
-    case 'purplePink': return `rgb(${Math.min(255, 120 + percent*135)}, ${Math.min(255, 0 + percent*60)}, ${Math.min(255, 140 + percent*115)})`;
-    case 'redOrange': return `rgb(${Math.min(255, 200 + percent*55)}, ${Math.min(255, 40 + percent*150)}, 0)`;
-
-    case 'fire': return `rgb(${Math.min(255, percent*500)}, ${Math.min(255, percent*60)}, 0)`;
-    case 'ocean': return `rgb(0, ${Math.min(255, percent*255)}, ${Math.min(255, 255)})`;
-    case 'neon': return `rgb(${Math.min(255, 50+percent*205)},255,255)`;
-
-    case 'custom1':
-    case 'custom2':
-    case 'custom3':
-    case 'custom4': {
-      const idx = parseInt(preset.replace('custom','')) - 1;
-      const pal = customPalettes[idx] || defaultCustomPalettes[idx];
-      return colorFromPalette(percent, pal);
+    /* Initialize AudioContext and analyzer */
+    function initAudioContext(){
+      if(!audioContext){
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        masterGain = audioContext.createGain();
+        masterGain.gain.value = volumeSlider.value;
+        masterGain.connect(analyser);
+        analyser.connect(audioContext.destination);
+        setupEQ();
+        log('AudioContext initialized');
+      }
     }
-    default: return `rgb(100,200,120)`;
-  }
-}
 
-/* drawing loop */
-function drawSpectrum(){
-  requestAnimationFrame(drawSpectrum);
-  if(!analyser) return;
-  const data = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(data);
-  ctx.fillStyle = '#111'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  const barWidth = (canvas.width / data.length) * 1.2;
-  let x = 0;
-  for(let i=0;i<data.length;i++){
-    const h = data[i] / 2;
-    ctx.fillStyle = getColor(i, spectrumPreset.value);
-    ctx.fillRect(x, canvas.height - h, barWidth, h);
-    x += barWidth + 1;
-  }
-}
-drawSpectrum();
+    /* Unlock audio context on first user interaction to satisfy autoplay policies */
+    document.body.addEventListener('click', ()=> {
+      if(!audioContextStarted){
+        audioContextStarted = true;
+        initAudioContext();
+        if(audioContext.state === 'suspended') audioContext.resume();
+      }
+    }, { once:true });
 
-/* ---------- Palette Editor UI ---------- */
-const overlay = document.getElementById('overlay');
-const paletteEditor = document.getElementById('paletteEditor');
-const paletteList = document.getElementById('paletteList');
-const editBtn = document.getElementById('editPalettes');
-const closePalettes = document.getElementById('closePalettes');
-const resetPalettes = document.getElementById('resetPalettes');
+    /* Volume changes */
+    volumeSlider.oninput = ()=>{
+      if(currentMedia) currentMedia.volume = volumeSlider.value;
+      if(masterGain) masterGain.gain.value = volumeSlider.value;
+      localStorage.setItem('audito_volume', volumeSlider.value);
+      log('Volume set to ' + Math.round(volumeSlider.value*100) + '%');
+    };
 
-function openPaletteEditor(){
-  buildPaletteEditor();
-  overlay.style.display = 'block';
-  paletteEditor.style.display = 'block';
-}
-function closePaletteEditor(){
-  overlay.style.display = 'none';
-  paletteEditor.style.display = 'none';
-}
-
-/* build the editor content (4 palettes, 3 color pickers each) */
-function buildPaletteEditor(){
-  paletteList.innerHTML = '';
-  customPalettes.forEach((pal, idx)=>{
-    const row = document.createElement('div');
-    row.className = 'palette-row';
-    const label = document.createElement('div');
-    label.style.width='70px'; label.textContent = 'Custom ' + (idx+1); label.style.color='#fff';
-    const box = document.createElement('div'); box.className = 'palette-box';
-    // create 3 color inputs per palette (if palette has different length, adapt)
-    for(let c=0;c<Math.max(3, pal.length); c++){
-      const colorInput = document.createElement('input');
-      colorInput.type = 'color';
-      colorInput.value = pal[c] || '#ffffff';
-      colorInput.className = 'color-input';
-      colorInput.oninput = (e)=> {
-        customPalettes[idx][c] = e.target.value;
-        saveCustomPalettes(customPalettes);
-      };
-      box.appendChild(colorInput);
+    /* EQ setup (11-band) */
+    function setupEQ(){
+      const eqSliders = document.querySelectorAll('.eq input');
+      filters = [];
+      eqSliders.forEach((slider)=>{
+        const freq = parseFloat(slider.dataset.band);
+        const filter = audioContext.createBiquadFilter();
+        filter.type = 'peaking';
+        filter.frequency.value = freq;
+        filter.Q.value = (freq < 100) ? 1.2 : (freq < 1000 ? 1 : 0.5);
+        filter.gain.value = parseFloat(slider.value);
+        // store change if user adjusts (but we clear stored EQ defaults on load)
+        slider.oninput = e => {
+          filter.gain.value = parseFloat(e.target.value);
+          // intentionally do NOT persist EQ to localStorage on load reset; but allow live use
+        };
+        filters.push(filter);
+      });
+      for(let i=0;i<filters.length-1;i++) filters[i].connect(filters[i+1]);
+      if(filters.length) filters[filters.length-1].connect(masterGain);
     }
-    // quick preview block
-    const preview = document.createElement('div');
-    preview.style.width='110px'; preview.style.height='32px'; preview.style.borderRadius='8px'; preview.style.boxShadow='inset 2px 2px 6px rgba(0,0,0,0.6)';
-    preview.style.background = `linear-gradient(90deg, ${pal.join(',')})`;
-    // update preview when colors change
-    const updatePreview = ()=> preview.style.background = `linear-gradient(90deg, ${customPalettes[idx].join(',')})`;
-    box.appendChild(preview);
 
-    // ensure color inputs update preview live
-    box.querySelectorAll('input[type=color]').forEach(ci=>ci.addEventListener('input', updatePreview));
+    /* Reset EQ sliders to neutral (0 dB) and clear any saved EQ keys */
+    function resetEQDefaults() {
+      const eqSliders = document.querySelectorAll('.eq input[type=range]');
+      eqSliders.forEach(slider => {
+        slider.value = 0; // neutral
+        // remove any saved value for this band if present
+        const freqKey = 'audito_eq_' + slider.dataset.band;
+        try { localStorage.removeItem(freqKey); } catch(e) {}
+      });
+      log('EQ reset to default (0 dB) on app open');
+    }
 
-    row.appendChild(label); row.appendChild(box);
-    paletteList.appendChild(row);
-  });
+    /* Create media element and wire to audio graph */
+    function createMediaElement(file){
+      if(currentMedia){
+        try{ currentMedia.pause(); currentMedia.remove(); } catch(e){ }
+        if(sourceNode) sourceNode.disconnect();
+      }
 
-  // small help text
-  const help = document.createElement('div');
-  help.style.color = '#ddd'; help.style.fontSize = '12px'; help.style.marginTop = '6px';
-  help.textContent = 'Each custom palette uses 3 colors (interpolated). Changes save automatically.';
-  paletteList.appendChild(help);
-}
+      const url = URL.createObjectURL(file);
 
-/* default reset */
-resetPalettes.onclick = ()=>{
-  customPalettes = defaultCustomPalettes.slice();
-  saveCustomPalettes(customPalettes);
-  buildPaletteEditor();
-};
+      if(file.type.startsWith('video')){
+        currentMedia = document.createElement('video');
+        currentMedia.src = url; currentMedia.controls = true; currentMedia.style.width = '100%';
+        currentMedia.volume = volumeSlider.value;
+        document.getElementById('mediaContainer').innerHTML = '';
+        document.getElementById('mediaContainer').appendChild(currentMedia);
+        currentMedia.play().catch(()=>{});
+      } else {
+        currentMedia = document.createElement('audio');
+        currentMedia.src = url; currentMedia.controls = true; currentMedia.style.width = '100%';
+        currentMedia.volume = volumeSlider.value;
+        document.getElementById('mediaContainer').innerHTML = '';
+        document.getElementById('mediaContainer').appendChild(currentMedia);
 
-/* wire edit open/close */
-editBtn.onclick = openPaletteEditor;
-closePalettes.onclick = closePaletteEditor;
-overlay.onclick = closePaletteEditor;
+        if(!audioContextStarted){ initAudioContext(); audioContextStarted = true; }
+        sourceNode = audioContext.createMediaElementSource(currentMedia);
+        if(filters.length>0) sourceNode.connect(filters[0]); else sourceNode.connect(masterGain);
+        currentMedia.play().catch(()=>{});
+      }
 
-/* ---------- Restore / Persistence ---------- */
-window.onload = ()=>{
-  const vol = localStorage.getItem('audito_volume');
-  if(vol) { volumeSlider.value = parseFloat(vol); if(masterGain) masterGain.gain.value = parseFloat(vol); }
-  // load saved EQ values into sliders
-  document.querySelectorAll('.eq input').forEach(sl=>{
-    const freq = sl.dataset.band;
-    const v = localStorage.getItem('audito_eq_'+freq);
-    if(v!==null) sl.value = v;
-  });
-  // load custom palettes
-  customPalettes = loadCustomPalettes();
-};
+      currentMedia.onended = handleMediaEnd;
+      currentMedia.ontimeupdate = ()=>{ if(currentMedia.duration) seekBar.value = (currentMedia.currentTime/currentMedia.duration)*100; };
+      log('Loaded: ' + file.name);
+    }
 
-/* ---------- minimal drag-n-drop for playlist ---------- */
-const app = document.getElementById('app');
-app.addEventListener('dragover', e=>e.preventDefault());
-app.addEventListener('drop', e=>{
-  e.preventDefault();
-  const dt = e.dataTransfer;
-  if(dt && dt.files && dt.files.length){
-    files = Array.from(dt.files).filter(f=> f.type.startsWith('audio') || f.type.startsWith('video'));
-    buildPlaylist();
-    if(files.length) loadFile(0);
-  }
-});
+    /* playlist management */
+    fileInput.onchange = e => {
+      files = Array.from(e.target.files);
+      buildPlaylist();
+      if(files.length>0) loadFile(0);
+    };
+    function buildPlaylist(){
+      playlist.innerHTML = '';
+      files.forEach((f,i)=>{
+        const d = document.createElement('div');
+        d.textContent = f.name;
+        d.onclick = ()=> loadFile(i);
+        playlist.appendChild(d);
+      });
+    }
 
-/* ---------- simple keyboard shortcuts (space play/pause) ---------- */
-document.addEventListener('keydown', e=>{
-  if(e.code === 'Space'){ e.preventDefault(); if(currentMedia && !currentMedia.paused) pause(); else play(); }
-});
+    /* control functions */
+    function loadFile(i){ if(i<0||i>=files.length) return; currentFileIndex = i; createMediaElement(files[i]); highlightActive(); }
+    function play(){ if(currentMedia) currentMedia.play().catch(()=>{}); log('Play'); }
+    function pause(){ if(currentMedia) currentMedia.pause(); log('Pause'); }
+    function stop(){ if(currentMedia){ currentMedia.pause(); currentMedia.currentTime = 0; } log('Stop'); }
+    function next(){ if(files.length===0) return; loadFile((currentFileIndex+1) % files.length); play(); log('Next'); }
+    function prev(){ if(files.length===0) return; loadFile((currentFileIndex-1+files.length) % files.length); play(); log('Prev'); }
+    function highlightActive(){ [...playlist.children].forEach((el,i)=> el.classList.toggle('active', i===currentFileIndex)); playlist.children[currentFileIndex]?.scrollIntoView({behavior:'smooth', block:'center'}); }
 
-</script>
+    loopBtn.onclick = ()=>{ loopMode = (loopMode+1)%3; loopBtn.innerText = loopMode===0 ? 'Loop: Off' : loopMode===1 ? 'Loop: One' : 'Loop: All'; log('Loop set: ' + loopBtn.innerText); };
+    function handleMediaEnd(){ if(loopMode===1) { currentMedia.currentTime = 0; currentMedia.play(); } else if(loopMode===2) next(); else stop(); }
+
+    /* Seek bar element */
+    const seekBar = document.createElement('input');
+    seekBar.type = 'range'; seekBar.min = 0; seekBar.max = 100; seekBar.step = 0.1; seekBar.value = 0;
+    seekBar.style.width = '100%'; seekBar.style.marginTop = '6px';
+    seekBar.oninput = ()=>{ if(currentMedia && currentMedia.duration) currentMedia.currentTime = (seekBar.value/100)*currentMedia.duration; };
+    document.getElementById('seekBarContainer').appendChild(seekBar);
+
+    /* wire buttons */
+    document.getElementById('play').onclick = play;
+    document.getElementById('pause').onclick = pause;
+    document.getElementById('stop').onclick = stop;
+    document.getElementById('prev').onclick = prev;
+    document.getElementById('next').onclick = next;
+
+    /* ---------- Spectrum Visualizer (4 presets: Rainbow, Fire, Ocean, Neon) ---------- */
+    const canvas = document.getElementById('spectrum');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    function getColor(i, preset){
+      const percent = i / 256;
+      switch(preset){
+        case 'rainbow': return `hsl(${percent*360}, 100%, 50%)`;
+        case 'fire':    return `rgb(${Math.min(255, percent*500)}, ${Math.min(255, percent*60)}, 0)`;
+        case 'ocean':   return `rgb(0, ${Math.min(255, percent*255)}, ${Math.min(255, 255)})`;
+        case 'neon':    return `rgb(${Math.min(255, 50+percent*205)},255,255)`;
+        default: return `rgb(100,200,120)`;
+      }
+    }
+
+    function drawSpectrum(){
+      requestAnimationFrame(drawSpectrum);
+      if(!analyser) return;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      ctx.fillStyle = '#0b0b0b'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      const barWidth = (canvas.width / data.length) * 1.2;
+      let x = 0;
+      for(let i=0;i<data.length;i++){
+        const h = data[i] / 2;
+        ctx.fillStyle = getColor(i, spectrumPreset.value);
+        ctx.fillRect(x, canvas.height - h, barWidth, h);
+        x += barWidth + 1;
+      }
+    }
+    drawSpectrum();
+
+    /* ---------- Restore / Persistence (Volume only) ---------- */
+    window.addEventListener('load', ()=> {
+      // 1) Reset EQ sliders to neutral defaults on each app open
+      resetEQDefaults();
+
+      // 2) Load saved volume (if available)
+      try {
+        const vol = localStorage.getItem('audito_volume');
+        if(vol !== null){
+          volumeSlider.value = parseFloat(vol);
+          if(masterGain) masterGain.gain.value = parseFloat(vol);
+        }
+      } catch(e) { /* ignore storage errors */ }
+
+      // (Note: we intentionally do NOT restore EQ values from localStorage so EQ always starts neutral)
+    });
+
+    /* ---------- Drag & Drop support ---------- */
+    const app = document.getElementById('app');
+    app.addEventListener('dragover', e=> e.preventDefault());
+    app.addEventListener('drop', e=>{
+      e.preventDefault();
+      const dt = e.dataTransfer;
+      if(dt && dt.files && dt.files.length){
+        files = Array.from(dt.files).filter(f=> f.type.startsWith('audio') || f.type.startsWith('video'));
+        buildPlaylist();
+        if(files.length) loadFile(0);
+      }
+    });
+
+    /* ---------- Keyboard shortcuts ---------- */
+    document.addEventListener('keydown', e=>{
+      if(e.code === 'Space'){ e.preventDefault(); if(currentMedia && !currentMedia.paused) pause(); else play(); }
+      if(e.key === 'ArrowRight') next();
+      if(e.key === 'ArrowLeft') prev();
+    });
+  </script>
 </body>
 </html>
