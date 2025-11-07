@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>🎵 Audito - Mobile-first Neomorphic Music Player</title>
+  <title>Audito - Unified Player</title>
+
   <style>
-    /* ---------- Mobile-first Responsive Neomorphic UI ---------- */
+    /* ---------- Mobile-first Neomorphic UI + Adaptive Visualizer Height ---------- */
     :root{
       --bg:#0b0b0b;
       --panel:#1a1a1a;
@@ -25,9 +26,10 @@
       color:var(--text);
       -webkit-font-smoothing:antialiased;
     }
+
     .app-frame{
       width:95%;
-      max-width:460px;
+      max-width:920px;            /* wider on desktop but still constrained */
       background:var(--panel);
       border-radius:18px;
       padding:14px;
@@ -37,89 +39,109 @@
       gap:10px;
       margin:16px auto;
     }
-    .header-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .header-row h2{margin:0;font-size:18px;color:var(--accent);text-shadow:0 0 8px rgba(0,224,255,0.06)}
-    input[type=file]{color:var(--text)}
+
+    /* header - minimal (just title icon) */
+    .header-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .header-row h2{ margin:0; font-size:18px; color:var(--accent); text-shadow:0 0 8px rgba(0,224,255,0.06) }
+
+    input[type=file]{ color:var(--text) }
 
     /* media container */
-    #mediaContainer{width:100%;border-radius:10px;overflow:hidden;background:#000}
-    /* visualizer canvas: SOLID DARK background for contrast */
-    canvas{width:100%;height:100px;border-radius:12px;background:#0a0a0a;box-shadow:inset 6px 6px 12px rgba(0,0,0,0.6);display:block}
+    #mediaContainer{ width:100%; border-radius:10px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center; min-height:48px; }
 
     /* seek bar */
-    .seek-bar{width:100%;margin-top:6px}
+    .seek-bar{ width:100%; margin-top:6px }
     .seek-bar input[type=range]{
-      width:100%;-webkit-appearance:none;height:8px;border-radius:8px;
-      background: linear-gradient(90deg,#222,#181818);
-      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.6);
+      width:100%; -webkit-appearance:none; height:8px; border-radius:8px;
+      background: linear-gradient(90deg,#222,#181818); box-shadow: inset 4px 4px 8px rgba(0,0,0,0.6);
     }
     .seek-bar input[type=range]::-webkit-slider-thumb{
-      -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
-      background:var(--accent);box-shadow:0 0 12px rgba(0,224,255,0.6);cursor:pointer;
+      -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+      background:var(--accent); box-shadow:0 0 12px rgba(0,224,255,0.6); cursor:pointer;
     }
 
     /* controls */
-    .controls{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;align-items:center;margin-top:6px}
+    .controls{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; align-items:center; margin-top:6px }
     .controls button{
-      background:var(--panel-inset);color:var(--text);border:none;padding:8px 12px;border-radius:12px;
+      background:var(--panel-inset); color:var(--text); border:none; padding:8px 12px; border-radius:12px;
       box-shadow:6px 6px 12px rgba(0,0,0,0.6), -6px -6px 12px rgba(255,255,255,0.02);
-      cursor:pointer;font-size:14px;
+      cursor:pointer; font-size:14px;
     }
     .controls button:active{
       box-shadow: inset 6px 6px 12px rgba(0,0,0,0.6), inset -6px -6px 12px rgba(255,255,255,0.02);
-      transform: scale(.98);
+      transform:scale(.98);
     }
-    .controls select{
-      background:var(--panel-inset);padding:8px;border-radius:10px;box-shadow:inset 4px 4px 8px rgba(0,0,0,0.6);
-      border:none;color:var(--text)
-    }
+    .controls select{ background:var(--panel-inset); padding:8px; border-radius:10px; box-shadow:inset 4px 4px 8px rgba(0,0,0,0.6); border:none; color:var(--text) }
 
     /* volume */
     .volume-control{
-      display:flex;align-items:center;gap:10px;background:var(--panel-inset);padding:8px;border-radius:12px;
-      box-shadow:inset 6px 6px 12px rgba(0,0,0,0.6), inset -6px -6px 12px rgba(255,255,255,0.02);
+      display:flex; align-items:center; gap:10px; background:var(--panel-inset); padding:8px; border-radius:12px;
+      box-shadow: inset 6px 6px 12px rgba(0,0,0,0.6), inset -6px -6px 12px rgba(255,255,255,0.02);
     }
-    .volume-control input[type=range]{width:80%;-webkit-appearance:none;height:6px;background:transparent}
+    .volume-control input[type=range]{ width:80%; -webkit-appearance:none; height:6px; background:transparent; }
     .volume-control input[type=range]::-webkit-slider-thumb{
-      -webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);
-      box-shadow:0 0 12px rgba(0,224,255,0.6);cursor:pointer;
+      -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--accent); box-shadow:0 0 12px rgba(0,224,255,0.6); cursor:pointer;
     }
 
     /* --- EQ: NON-SCROLLABLE fixed layout --- */
     .eq{
-      display:flex;align-items:flex-end;justify-content:space-between;gap:8px;
-      height:150px;padding:8px 6px;border-radius:14px;background:var(--panel-inset);
+      display:flex; align-items:flex-end; justify-content:space-between; gap:8px;
+      height:150px; padding:8px 6px; border-radius:14px; background:var(--panel-inset);
       box-shadow: inset 8px 8px 14px rgba(0,0,0,0.6), inset -8px -8px 14px rgba(255,255,255,0.02);
       overflow: hidden;
     }
     .eq input[type=range]{
-      writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:26px;height:120px;border-radius:12px;background:#222;
-      outline:none;box-shadow:4px 4px 8px rgba(0,0,0,0.6), -4px -4px 8px rgba(255,255,255,0.02);
+      writing-mode:bt-lr; -webkit-appearance:slider-vertical; width:26px; height:120px; border-radius:12px; background:#222;
+      outline:none; box-shadow:4px 4px 8px rgba(0,0,0,0.6), -4px -4px 8px rgba(255,255,255,0.02);
     }
-    .eq input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none;width:16px;height:16px;border-radius:50%;transition:transform .14s }
+    .eq input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:16px; border-radius:50%; transition:transform .14s }
     .eq input[type=range]:hover::-webkit-slider-thumb{ transform:scale(1.2) }
 
-    /* neon thumbs */
-    .eq input:nth-child(1)::-webkit-slider-thumb{ background:#ff3b3b; box-shadow:0 0 10px #ff3b3b; }
-    .eq input:nth-child(2)::-webkit-slider-thumb{ background:#ff7b00; box-shadow:0 0 10px #ff7b00; }
-    .eq input:nth-child(3)::-webkit-slider-thumb{ background:#ffb300; box-shadow:0 0 10px #ffb300; }
-    .eq input:nth-child(4)::-webkit-slider-thumb{ background:#00ff80; box-shadow:0 0 10px #00ff80; }
-    .eq input:nth-child(5)::-webkit-slider-thumb{ background:#00d5ff; box-shadow:0 0 10px #00d5ff; }
-    .eq input:nth-child(6)::-webkit-slider-thumb{ background:#007bff; box-shadow:0 0 10px #007bff; }
-    .eq input:nth-child(7)::-webkit-slider-thumb{ background:#c800ff; box-shadow:0 0 10px #c800ff; }
-    .eq input:nth-child(8)::-webkit-slider-thumb{ background:#ff00ff; box-shadow:0 0 10px #ff00ff; }
-    .eq input:nth-child(9)::-webkit-slider-thumb{ background:#ff5ce2; box-shadow:0 0 10px #ff5ce2; }
-    .eq input:nth-child(10)::-webkit-slider-thumb{ background:#00ffff; box-shadow:0 0 10px #00ffff; }
-    .eq input:nth-child(11)::-webkit-slider-thumb{ background:#ffff00; box-shadow:0 0 10px #ffff00; }
+    /* neon thumbs colors */
+    .eq input:nth-child(1)::-webkit-slider-thumb{ background:#ff3b3b; box-shadow:0 0 10px #ff3b3b }
+    .eq input:nth-child(2)::-webkit-slider-thumb{ background:#ff7b00; box-shadow:0 0 10px #ff7b00 }
+    .eq input:nth-child(3)::-webkit-slider-thumb{ background:#ffb300; box-shadow:0 0 10px #ffb300 }
+    .eq input:nth-child(4)::-webkit-slider-thumb{ background:#00ff80; box-shadow:0 0 10px #00ff80 }
+    .eq input:nth-child(5)::-webkit-slider-thumb{ background:#00d5ff; box-shadow:0 0 10px #00d5ff }
+    .eq input:nth-child(6)::-webkit-slider-thumb{ background:#007bff; box-shadow:0 0 10px #007bff }
+    .eq input:nth-child(7)::-webkit-slider-thumb{ background:#c800ff; box-shadow:0 0 10px #c800ff }
+    .eq input:nth-child(8)::-webkit-slider-thumb{ background:#ff00ff; box-shadow:0 0 10px #ff00ff }
+    .eq input:nth-child(9)::-webkit-slider-thumb{ background:#ff5ce2; box-shadow:0 0 10px #ff5ce2 }
+    .eq input:nth-child(10)::-webkit-slider-thumb{ background:#00ffff; box-shadow:0 0 10px #00ffff }
+    .eq input:nth-child(11)::-webkit-slider-thumb{ background:#ffff00; box-shadow:0 0 10px #ffff00 }
 
     /* playlist & debug */
-    .playlist{ width:100%; max-height:120px; overflow-y:auto; padding:8px; border-radius:12px; background:#0f0f0f; box-shadow: inset 6px 6px 12px rgba(0,0,0,0.6); color:#fff; }
+    .playlist{ width:100%; max-height:200px; overflow-y:auto; padding:8px; border-radius:12px; background:#0f0f0f; box-shadow: inset 6px 6px 12px rgba(0,0,0,0.6); color:#fff; }
     .playlist div{ padding:8px; border-radius:8px; cursor:pointer }
     .playlist div:hover{ background:#222 }
-    .debug-log{ width:100%; height:72px; border-radius:10px; padding:8px; background:#000; color:#00ffcc; box-shadow: inset 4px 4px 8px rgba(0,0,0,0.6); overflow:auto; font-size:12px; }
+    .debug-log{ width:100%; height:72px; border-radius:10px; padding:8px; background:#000; color:#00ffcc; box-shadow: inset 4px 4px 8px rgba(0,0,0,0.6); overflow:auto; font-size:12px }
 
-    @media (max-width:720px){ .app-frame{padding:12px;gap:8px;max-width:420px} .eq{height:140px} canvas{height:92px} .controls button{padding:8px 10px;min-width:52px;font-size:13px} }
-    @media (max-width:420px){ .app-frame{max-width:98%;padding:10px} .eq{height:130px;gap:6px} .eq input[type=range]{width:22px;height:100px} canvas{height:80px} .controls button{padding:6px 8px;min-width:44px;font-size:12px} .playlist{max-height:100px} }
+    /* Adaptive visualizer heights via CSS media queries */
+    /* Keep canvas background solid dark (#0a0a0a) for contrast */
+    #spectrum{ width:100%; display:block; background:#0a0a0a; border-radius:12px; box-shadow: inset 6px 6px 12px rgba(0,0,0,0.6); }
+
+    @media (max-width: 600px) {
+      #spectrum{ height:130px; }  /* mobile */
+      .eq{ height:130px }         /* keep proportions */
+      .eq input[type=range]{ height:100px }
+    }
+    @media (min-width: 601px) and (max-width: 1024px) {
+      #spectrum{ height:200px; }  /* tablet */
+      .eq{ height:150px }
+      .eq input[type=range]{ height:120px }
+    }
+    @media (min-width: 1025px) {
+      #spectrum{ height:300px; }  /* desktop */
+      .eq{ height:170px }
+      .eq input[type=range]{ height:140px }
+    }
+
+    /* small adjustments on very narrow screens */
+    @media (max-width:420px){
+      .app-frame{ padding:10px }
+      .controls button{ padding:6px 8px; font-size:12px }
+      .playlist{ max-height:120px }
+    }
   </style>
 </head>
 <body>
@@ -133,10 +155,11 @@
 
     <div id="mediaContainer"></div>
 
+    <!-- Seek bar area (seek element injected by script) -->
     <div class="seek-bar" id="seekBarContainer"></div>
 
-    <!-- Visualizer: solid dark background for maximum contrast -->
-    <canvas id="spectrum"></canvas>
+    <!-- Visualizer canvas (solid dark background) -->
+    <canvas id="spectrum" aria-label="Audio visualizer"></canvas>
 
     <div class="controls">
       <button id="prev">⏮</button>
@@ -148,7 +171,7 @@
       <button id="loop">Loop: Off</button>
 
       <select id="spectrumPreset" title="Visualizer preset">
-        <option value="rainbow">Rainbow</option>
+        <option value="rainbow" selected>Rainbow</option>
         <option value="fire">Fire</option>
         <option value="ocean">Ocean</option>
         <option value="neon">Neon</option>
@@ -221,11 +244,11 @@
       }
     }, { once:true });
 
-    /* Volume changes */
+    /* Volume changes (persist) */
     volumeSlider.oninput = ()=>{
       if(currentMedia) currentMedia.volume = volumeSlider.value;
       if(masterGain) masterGain.gain.value = volumeSlider.value;
-      try { localStorage.setItem('audito_volume', volumeSlider.value); } catch(e){}
+      try{ localStorage.setItem('audito_volume', volumeSlider.value); } catch(e){}
     };
 
     /* EQ setup (11-band) */
@@ -246,16 +269,16 @@
       if(filters.length) filters[filters.length-1].connect(masterGain);
     }
 
-    /* Reset EQ sliders to neutral (0 dB) on every app open */
+    /* Reset EQ sliders to neutral (0 dB) on open */
     function resetEQDefaults(){
       document.querySelectorAll('.eq input').forEach(s=>{
         s.value = 0;
-        try { localStorage.removeItem('audito_eq_' + s.dataset.band); } catch(e){}
+        try{ localStorage.removeItem('audito_eq_' + s.dataset.band); } catch(e){}
       });
       log('EQ reset to default (0 dB) on app open');
     }
 
-    /* Create media element and wire to audio graph */
+    /* Create media element and connect to audio graph */
     function createMediaElement(file){
       if(currentMedia){
         try{ currentMedia.pause(); currentMedia.remove(); }catch(e){}
@@ -287,7 +310,7 @@
       log('Loaded: ' + file.name);
     }
 
-    /* playlist management */
+    /* Playlist */
     fileInput.onchange = e => {
       files = Array.from(e.target.files);
       buildPlaylist();
@@ -303,7 +326,7 @@
       });
     }
 
-    /* player controls */
+    /* Player controls */
     function loadFile(i){ if(i<0||i>=files.length) return; currentFileIndex = i; createMediaElement(files[i]); highlightActive(); }
     function play(){ if(currentMedia) currentMedia.play().catch(()=>{}); log('Play'); }
     function pause(){ if(currentMedia) currentMedia.pause(); log('Pause'); }
@@ -328,38 +351,38 @@
     document.getElementById('prev').onclick = prev;
     document.getElementById('next').onclick = next;
 
-    /* ---------- Bright Steady-Glow Visualizer (Rainbow, Fire, Ocean, Neon) ---------- */
+    /* ---------- Bright steady-glow visualizer ---------- */
     const canvas = document.getElementById('spectrum');
     const ctx = canvas.getContext('2d');
-    function resizeCanvas(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
-    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    function resizeCanvas(){
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
     function brightColor(i, v, preset){
-      // i: index, v: amplitude 0..255
-      const percent = i / 256;
+      // returns { fill, shadow }
       switch(preset){
         case 'fire':
-          // bright fiery colors with glow
           return {
             fill: `rgb(${Math.min(255, v + 150)}, ${Math.min(255, Math.round(v/1.8))}, ${Math.round(v/8)})`,
-            shadow: `rgba(${Math.min(255, v + 180)}, ${Math.min(255, Math.round(v/1.6))}, ${Math.round(v/6)}, 0.9)`
+            shadow: `rgba(${Math.min(255, v + 180)}, ${Math.min(255, Math.round(v/1.6))}, ${Math.round(v/6)}, 0.85)`
           };
         case 'ocean':
-          // electric aqua / teal
           return {
             fill: `rgb(${Math.round(v/4)}, ${Math.min(255, v + 180)}, ${Math.min(255, v + 220)})`,
-            shadow: `rgba(${Math.round(v/6)}, ${Math.min(255, v + 200)}, ${Math.min(255, v + 230)}, 0.95)`
+            shadow: `rgba(${Math.round(v/6)}, ${Math.min(255, v + 200)}, ${Math.min(255, v + 230)}, 0.9)`
           };
         case 'neon':
-          // magenta-cyan neon
           return {
             fill: `rgb(${Math.min(255, v + 180)}, ${Math.round(v/3)}, ${Math.min(255, v + 220)})`,
             shadow: `rgba(${Math.min(255, v + 200)}, ${Math.round(v/4)}, ${Math.min(255, v + 230)}, 0.95)`
           };
-        default:
-          // rainbow: vibrant HSL where lightness slightly increases with amplitude
+        default: // rainbow
           const hue = (i / 256) * 360;
-          const lightness = Math.min(80, 50 + v / 6); // brighter
+          const lightness = Math.min(80, 50 + v / 6);
           return {
             fill: `hsl(${hue}, 100%, ${lightness}%)`,
             shadow: `hsla(${hue}, 100%, ${Math.min(70, lightness+10)}%, 0.9)`
@@ -372,14 +395,14 @@
       if(!analyser) return;
       const data = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(data);
-      // solid dark background for contrast
+
+      // Solid dark background
       ctx.fillStyle = '#0a0a0a';
       ctx.fillRect(0,0,canvas.width,canvas.height);
 
-      const barWidth = (canvas.width / data.length) * 1.15;
+      const barWidth = (canvas.width / data.length) * 1.12;
       let x = 0;
-      // steady global shadow blur (constant for clean glow)
-      const glow = 18;
+      const glow = 18; // steady blur for all bars
       for(let i=0;i<data.length;i++){
         const v = data[i];
         const col = brightColor(i, v, spectrumPreset.value);
@@ -390,17 +413,16 @@
         ctx.fillRect(x, canvas.height - h, Math.max(1, barWidth - 1), h);
         x += barWidth + 1;
       }
-      // reset shadow for other drawings if any
       ctx.shadowBlur = 0;
     }
     drawSpectrum();
 
     /* ---------- Restore / Persistence ---------- */
     window.addEventListener('load', ()=>{
-      // 1) Reset EQ to neutral defaults immediately on load (so filters later reflect neutral)
+      // Reset EQ to neutral defaults immediately on load
       resetEQDefaults();
 
-      // 2) restore volume if present
+      // Restore volume from localStorage if available
       try{
         const vol = localStorage.getItem('audito_volume');
         if(vol !== null){
@@ -408,9 +430,10 @@
           if(masterGain) masterGain.gain.value = parseFloat(vol);
         }
       }catch(e){}
+      resizeCanvas();
     });
 
-    /* ---------- Drag & Drop support ---------- */
+    /* ---------- Drag & Drop ---------- */
     const app = document.getElementById('app');
     app.addEventListener('dragover', e=> e.preventDefault());
     app.addEventListener('drop', e=>{
